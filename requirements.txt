@@ -1,0 +1,11 @@
+charset-normalizer==3.3.0
+docx==0.2.4
+idna==3.4
+lxml==4.9.3
+numpy==1.26.0
+packaging==23.1
+python-docx==0.8.11
+pytz==2023.3.post1
+six==1.16.0
+tzdata==2023.3
+urllib3==2.0.5
