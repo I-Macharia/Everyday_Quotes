@@ -2,21 +2,33 @@ import requests
 import pandas as pd
 from bs4 import BeautifulSoup
 import scrapy 
+import zipfile
 #from pathlib import path
 
 import numpy as np
 import seaborn as sns
 import matplotlib.pyplot as plt
+from wordcloud import WordCloud
+from nltk import FreqDist
+import plotly.express as px
 
 from langdetect import detect
 from googletrans import Translator
 
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.cluster import KMeans
+
 import nltk
 from nltk.corpus import stopwords
 from nltk.tokenize import word_tokenize
 
+
+import tensorflow as tf
+from sklearn.model_selection import train_test_split
+from tensorflow.keras.preprocessing.text import Tokenizer
+from tensorflow.keras.preprocessing.sequence import pad_sequences
 
 
 def translate_to_english(text):
@@ -72,3 +84,6 @@ Example:
     tokens = [word for word in tokens if word not in stopwords.words('english')]
     # Join tokens back into text
     return ' '.join(tokens)
+
+
+
