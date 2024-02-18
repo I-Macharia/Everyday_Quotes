@@ -84,6 +84,8 @@ Example:
     # Join tokens back into text
     return ' '.join(tokens)
 
+def compress_tags(tags_list):
+    return list(set(tags_list))[:5]
 
 def preprocesss_text(text):
     """
@@ -95,18 +97,14 @@ def preprocesss_text(text):
     Returns:
     - str: The preprocessed text.
     """
-    # Check if the text is not a float (i.e., it's a string)
-    if not isinstance(text, float):
-        # Lowercase
-        text = text.lower()
-        # Tokenization
-        tokens = word_tokenize(text)
-        # Remove stopwords
-        stop_words = set(stopwords.words('english'))
-        tokens = [word for word in tokens if word.isalnum() and word not in stop_words]
-        # Join tokens back into text
-        processed_text = ' '.join(tokens)
-        return processed_text
-    else:
+    if isinstance(text, float):
         # Return an empty string for float values
         return ''
+    # Lowercase
+    text = text.lower()
+    # Tokenization
+    tokens = word_tokenize(text)
+    # Remove stopwords
+    stop_words = set(stopwords.words('english'))
+    tokens = [word for word in tokens if word.isalnum() and word not in stop_words]
+    return ' '.join(tokens)
