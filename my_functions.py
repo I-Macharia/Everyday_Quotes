@@ -25,7 +25,6 @@ from nltk.corpus import stopwords
 from nltk.tokenize import word_tokenize
 
 
-import tensorflow as tf
 from sklearn.model_selection import train_test_split
 from tensorflow.keras.preprocessing.text import Tokenizer
 from tensorflow.keras.preprocessing.sequence import pad_sequences
@@ -86,4 +85,28 @@ Example:
     return ' '.join(tokens)
 
 
-
+def preprocesss_text(text):
+    """
+    Preprocesses the given text by converting it to lowercase, tokenizing it, removing stopwords, and joining the tokens back into text.
+    
+    Parameters:
+    - text (str): The input text.
+    
+    Returns:
+    - str: The preprocessed text.
+    """
+    # Check if the text is not a float (i.e., it's a string)
+    if not isinstance(text, float):
+        # Lowercase
+        text = text.lower()
+        # Tokenization
+        tokens = word_tokenize(text)
+        # Remove stopwords
+        stop_words = set(stopwords.words('english'))
+        tokens = [word for word in tokens if word.isalnum() and word not in stop_words]
+        # Join tokens back into text
+        processed_text = ' '.join(tokens)
+        return processed_text
+    else:
+        # Return an empty string for float values
+        return ''
