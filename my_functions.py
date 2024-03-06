@@ -81,8 +81,18 @@ Example:
     tokens = word_tokenize(text)
     # Remove stopwords
     tokens = [word for word in tokens if word not in stopwords.words('english')]
-    # Join tokens back into text
-    return ' '.join(tokens)
+
+     # Tokenize
+    words = nltk.word_tokenize(text.lower())
+    
+    # Remove stopwords and punctuation
+    words = [word for word in words if word.isalpha() and word not in stop_words]
+    # Lemmatize
+    words = [lemmatizer.lemmatize(word) for word in words]
+    # Join tokens back into text 
+    
+    return ' '.join(tokens), words
+
 
 def compress_tags(tags_list):
     return list(set(tags_list))[:5]
