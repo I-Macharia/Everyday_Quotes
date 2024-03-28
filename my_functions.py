@@ -118,3 +118,9 @@ def preprocesss_text(text):
     stop_words = set(stopwords.words('english'))
     tokens = [word for word in tokens if word.isalnum() and word not in stop_words]
     return ' '.join(tokens)
+
+# Simple text cleaning process
+def clean_text(text):
+    text = text.lower()
+    text = ''.join([c for c in text if c not in ('!', '.', ':', '?', ',', '"')])
+    return text
