@@ -5,13 +5,24 @@ from gtts import gTTS
 import os
 import transformers
 import random
+import pandas as pd
+
+
+def text_to_speech(text):
+    print("AI --> ", text)
+    # speaker = gTTS(text=text, lang="en", slow=False)
+    # speaker.save("res.mp3")
+    # os.system("start res.mp3")  #if you have a macbook->afplay or for windows use->start
+    # os.remove("res.mp3")
+
 
 class ChatBot:
     def __init__(self, name):
         self.name = name
 
     def wake_up(self, text):
-        return self.name in text.lower()
+        wake_words = ["dev", "bot", "assistant", "time", "hello", "quote"]
+        return any(word in text.lower() for word in wake_words)
 
     def speech_to_text(self):
         r = sr.Recognizer()
@@ -28,31 +39,30 @@ class ChatBot:
     @staticmethod
     def action_time():
         return datetime.datetime.now().time().strftime('%H:%M')
-
-    @staticmethod
-    def text_to_speech(text):
-        print("AI --> ", text)
-        speaker = gTTS(text=text, lang="en", slow=False)
-        speaker.save("res.mp3")
-        os.system("start res.mp3")  #if you have a macbook->afplay or for windows use->start
-        os.remove("res.mp3")
     
     @staticmethod
     def get_random_quote(df):
         return df.sample().quote.iloc[0]
-        
-# Execute the AI
+
 if __name__ == "__main__":
+    df = pd.read_csv(r'E:\Documents\data_science\post_capstone\Everyday_Quotes\Everyday_Quotes\data\quotes_3.csv')
+
     ai = ChatBot(name="Dev")
     while True:
-        ai.speech_to_text()
+        user_input = input("You --> ")
+        ai.text = user_input
+
         if ai.wake_up(ai.text):
-            res = "Hello I am Dev the AI, what can I do for you?"
-        elif "time" in ai.text:
-            res = ai.action_time()
-        # Generate a random quote
-        elif "quote" in ai.text:
-            res = ai.get_random_quote(df)
-        ai.text_to_speech(res)
-        
+            if "time" in ai.text:
+                res = ai.action_time()
+            elif "quote" in ai.text:
+                res = ai.get_random_quote(df)
+            elif "hello" in ai.text:
+                res = f"Hello, {ai.name}!"
+            else:
+                res = "I'm here to help you with time or quotes. What else can I do for you?"
+        else:
+            res = "Sorry, I didn't catch that."
+
+        text_to_speech(res)
         
