@@ -121,6 +121,8 @@ def preprocesss_text(text):
 
 # Simple text cleaning process
 def clean_text(text):
-    text = text.lower()
-    text = ''.join([c for c in text if c not in ('!', '.', ':', '?', ',', '"')])
+    if isinstance(text, str):
+        text = text.lower()
+        text = ''.join([c for c in text if c not in ('!', '.', ':', '?', ',', '\"')])
     return text
+
