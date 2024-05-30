@@ -5,6 +5,8 @@ import pandas as pd
 import zipfile
 #from pathlib import path
 
+import string
+
 import numpy as np
 import seaborn as sns
 import matplotlib.pyplot as plt
@@ -54,7 +56,7 @@ Example:
             return text
         translator = Translator()
         return translator.translate(text, src=lang, dest='en').text
-    except:
+    except Exception:
         return text 
     
 
@@ -120,9 +122,12 @@ def preprocesss_text(text):
     return ' '.join(tokens)
 
 # Simple text cleaning process
+
 def clean_text(text):
-    if isinstance(text, str):
-        text = text.lower()
-        text = ''.join([c for c in text if c not in ('!', '.', ':', '?', ',', '\"')])
+    # Remove punctuation
+    text = text.translate(str.maketrans('', '', string.punctuation))
+    # Convert to lowercase
+    text = text.lower()
     return text
+
 
