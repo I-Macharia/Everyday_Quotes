@@ -1,0 +1,19 @@
+{
+"id": "TASK_handle_input_d09a9c6d-41bc-4b5d-8abe-64954b438903",
+"owner_id": "SCENARIO_scenario_8417de87-6c66-473b-aa23-992992fe43f1",
+"parent_ids": [
+"SCENARIO_scenario_8417de87-6c66-473b-aa23-992992fe43f1"
+],
+"config_id": "handle_input",
+"input_ids": [
+"DATANODE_input_name_ca508b06-b69b-427f-a9c2-bf1d89515e3f"
+],
+"function_name": "handle_input",
+"function_module": "__main__",
+"output_ids": [
+"DATANODE_message_e4b58efc-5ae7-4fef-8e17-06fcc1ffec49"
+],
+"version": "11fab096-c11c-4911-8e6c-386f5419fb5a",
+"skippable": false,
+"properties": {}
+}
