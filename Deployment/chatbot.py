@@ -1,11 +1,9 @@
 import numpy as np
-import os
-import random
 import pandas as pd
 import datetime
 import pickle
 import spacy
-from nltk.corpus import stopwords
+from sklearn.utils import resample
 from sklearn.neighbors import KNeighborsRegressor
 from sklearn.feature_extraction.text import TfidfVectorizer
 
@@ -20,33 +18,18 @@ def load_data():
         tweets_vectorized = pickle.load(q)
     with open('data/quotes_2_pickle', 'rb') as d:
         quotes_2 = pickle.load(d)
+    with open('data/tweets_df', 'rb') as t:
+        tweets_df = pickle.load(t)
     df = pd.read_csv('data/quotes_2.csv')
     with open('data/combined_text', 'rb') as ct:
         combined_text = pickle.load(ct)
-    return quotes_vectorized, tweets_vectorized, df, quotes_2, combined_text
+    return quotes_vectorized, tweets_vectorized, df, quotes_2, combined_text, tweets_df
 
-quotes_vectorized, tweets_vectorized, df, quotes_2, combined_text = load_data()
+quotes_vectorized, tweets_vectorized, df, quotes_2, combined_text, tweets_df = load_data()
 
-class DataHandler:
-    def __init__(self, quotes_vectorized, tweets_vectorized, df):
-        self.quotes_vectorized = quotes_vectorized
-        self.tweets_vectorized = tweets_vectorized
-        self.tweets_vectorized_downsampled = self.tweets_vectorized[np.random.choice(tweets_vectorized.shape[0], 3000, replace=False)]
-        self.vectorizer = TfidfVectorizer(stop_words=stopwords.words('english')).fit(combined_text)
-        self.df = df
-    
-    def find_quote_for_tweet(self, topic):
-        cleaned_topic = self.clean_text(topic)
-        vectorized_topic = self.vectorizer.transform([cleaned_topic])
-        model = KNeighborsRegressor(n_neighbors=1)
-        model.fit(self.quotes_vectorized, self.tweets_vectorized_downsampled)
-        distance, index = model.kneighbors(vectorized_topic)
-        quote = self.df.iloc[index[0][0]]['quote']
-        author = self.df.iloc[index[0][0]]['author']
-        return quote, author
-    
-    def clean_text(self, text):
-        return text.lower().strip()
+
+
+
 
 class ChatBot:
     def __init__(self, name, data_handler):
@@ -117,19 +100,19 @@ class ChatBot:
 
     def generate_response(self, text):
         if not self.wake_up(text):
-            return "Sorry, I didn't understand that. Please try asking in a different way."
-
+            return
         doc = nlp(text)
         if "time" in [token.text for token in doc]:
             return self.get_time_response()
 
-        elif "quote" in [token.text for token in doc] and "about" in [token.text for token in doc]:
-            words = text.lower().split()
-            topic_index = words.index("about") + 1
-            if topic_index >= len(words):
-                return "Please specify a topic for the quote."
-            topic = " ".join(words[topic_index:])
-            return self.data_handler.find_quote_for_tweet(topic)
+        elif "quote" in text:
+                topic = ""
+                words = text.split()
+                for word in words:
+                    if "about" in word.lower() and "a" in word.lower() and "topic" in word.lower():
+                        index = words.index(word)
+                        topic = " ".join(words[index+1:]).strip()
+                res = self.data_handler.find_quote_for_tweet(topic)
 
         elif any(word.lower() in self.responses for word in text.split()):
             for word in text.split():
@@ -142,7 +125,7 @@ class ChatBot:
         return self.conversation_history
 
 if __name__ == "__main__":
-    data_handler = DataHandler(quotes_vectorized, tweets_vectorized, df)
+    data_handler = DataHandler(quotes_vectorized, tweets_vectorized, df, combined_text)
     ai = ChatBot(name="Dev", data_handler=data_handler)
     while True:
         user_input = input("You --> ")
