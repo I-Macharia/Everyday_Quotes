@@ -222,7 +222,6 @@ def load_results(filename):
     with open(filename, 'rb') as f:
         return pickle.load(f)
 
-
 class QuoteFinder:
     def __init__(self, quotes_df=None):
         self.quotes_df = quotes_df

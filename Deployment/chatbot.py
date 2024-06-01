@@ -32,6 +32,7 @@ quotes_vectorized, tweets_vectorized, df, quotes_2, combined_text, tweets_df = l
 # Load the QuoteFinder class with the saved components
 quote_finder = QuoteFinder.load('Deployment/data/vectorizer.pkl', 'Deployment/data/svm_model.pkl', 'Deployment/data/quotes_df.pkl')
 
+
 class ChatBot:
     def __init__(self, name, quote_finder):
         self.name = name
@@ -99,35 +100,22 @@ class ChatBot:
     def get_quote_about_time_response(self):
         quote, author = self.quote_finder.find_quote_for_tweet("time")
         return f"Quote: {quote}\nAuthor: {author}"
-
-    def log_conversation(self, user_input, response):
-        self.conversation_history.append({"user": user_input, "bot": response})
-
+    
     def generate_response(self, text):
-        if not self.wake_up(text):
-            response = "Sorry, I didn't understand that."
-            self.log_conversation(text, response)
-            return response
-
         doc = nlp(text)
         
         if "time" in [token.text for token in doc]:
-            response = self.get_time_response()
+            return self.get_time_response()
         elif any(command in text.lower() for command in self.responses):
             for command in self.responses:
                 if command in text.lower():
-                    response = self.responses[command]()
-                    break
-        else:
-            # Default case: generate a quote for any input
-            quote, author = self.quote_finder.find_quote_for_tweet(text)
-            response = f"Quote: {quote}\nAuthor: {author}"
-
-        self.log_conversation(text, response)
-        return response
-
-    def get_conversation_history(self):
-        return self.conversation_history
+                    return self.responses[command]()
+        
+        print("No specific command detected. Trying to find a quote.")
+        # Default case: generate a quote for any input
+        quote, author = self.quote_finder.find_quote_for_tweet(text)
+        print(f"Quote: {quote}\n Author: {author}")
+        return f"Quote: {quote} \n Author: {author}"
 
 if __name__ == "__main__":
     quotes_vectorized, tweets_vectorized, df, quotes_2, combined_text, tweets_df = load_data()
@@ -138,10 +126,3 @@ if __name__ == "__main__":
     test_input = "Give me a quote about time."
     response = ai.generate_response(test_input)
     print(f"AI --> {response}")
-
-    # Retrieve and print conversation history
-    history = ai.get_conversation_history()
-    for entry in history:
-        print(f"User: {entry['user']}")
-        print(f"Bot: {entry['bot']}")
-

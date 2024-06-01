@@ -7,6 +7,7 @@ from wordcloud import WordCloud
 import streamlit as st
 import pickle
 import joblib
+from PIL import Image, ImageDraw, ImageFont
 from my_functions import (load_results, QuoteFinder,aggregate_statistics,
     plot_histograms,
     sentiment_categories,
@@ -35,6 +36,7 @@ loaded_results = load_results('Deployment/data/analysis_results.pkl')
 
 def main_page():
     st.title("Bobby's Quotes Bot")
+      
     # Display instructions
     st.header("How to Use the ChatBot")
     st.write("""
@@ -44,6 +46,7 @@ def main_page():
     4. Ask for a quote on a specific topic, for example, "quote about time".
     5. You can also say "thanks" to receive a polite response.
     6. Explore other predefined responses like "yes", "no", "what can you do", and "capabilities".
+    7. You can go ahead and tell it whatever, and it will return a relatable quote 80% of the time.
     """)
     quotes_vectorized, tweets_vectorized, df, quotes_2, combined_text, tweets_df = load_data()
 
@@ -51,17 +54,12 @@ def main_page():
     data_handler = QuoteFinder.load('Deployment/data/vectorizer.pkl', 'Deployment/data/svm_model.pkl', 'Deployment/data/quotes_df.pkl')
     ai = ChatBot(name="Bobby", quote_finder=data_handler)
 
-    if conversation_history := ai.get_conversation_history():
-        st.subheader("Conversation History")
-        for interaction in conversation_history:
-            st.write(f"You --> {interaction['user']}")
-            st.write(f"Bobby --> {interaction['bot']}")
-            st.write("---")
-
     user_input = st.text_input("You -->")
     if st.button("Send") and user_input:
         reply = ai.generate_response(user_input)
-        st.write(f"Bobby --> {reply}")
+        
+        st.write("Bobby -->")
+        st.write(reply)
 
 def about_page():
     st.title("Daily Motivation Quotes")
