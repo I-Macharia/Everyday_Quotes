@@ -3,9 +3,11 @@ import pandas as pd
 import datetime
 import pickle
 import spacy
+import joblib
 from sklearn.utils import resample
 from sklearn.neighbors import KNeighborsRegressor
 from sklearn.feature_extraction.text import TfidfVectorizer
+from my_functions import load_results, QuoteFinder
 
 # Load spaCy model
 nlp = spacy.load("en_core_web_sm")
@@ -27,14 +29,14 @@ def load_data():
 
 quotes_vectorized, tweets_vectorized, df, quotes_2, combined_text, tweets_df = load_data()
 
-
-
+# Load the QuoteFinder class with the saved components
+quote_finder = QuoteFinder.load('Deployment/data/vectorizer.pkl', 'Deployment/data/svm_model.pkl', 'Deployment/data/quotes_df.pkl')
 
 
 class ChatBot:
-    def __init__(self, name, data_handler):
+    def __init__(self, name, quote_finder):
         self.name = name
-        self.data_handler = data_handler
+        self.quote_finder = quote_finder
         self.conversation_history = []
         self.responses = {
             "hello": self.get_hello_response,
@@ -96,42 +98,31 @@ class ChatBot:
         )
 
     def get_quote_about_time_response(self):
-        return self.data_handler.find_quote_for_tweet("time")
-
+        quote, author = self.quote_finder.find_quote_for_tweet("time")
+        return f"Quote: {quote}\nAuthor: {author}"
+    
     def generate_response(self, text):
-        if not self.wake_up(text):
-            return
         doc = nlp(text)
+        
         if "time" in [token.text for token in doc]:
             return self.get_time_response()
-
-        elif "quote" in text:
-                topic = ""
-                words = text.split()
-                for word in words:
-                    if "about" in word.lower() and "a" in word.lower() and "topic" in word.lower():
-                        index = words.index(word)
-                        topic = " ".join(words[index+1:]).strip()
-                res = self.data_handler.find_quote_for_tweet(topic)
-
-        elif any(word.lower() in self.responses for word in text.split()):
-            for word in text.split():
-                if word.lower() in self.responses:
-                    return self.responses[word.lower()]()
-
-        return self.get_capabilities_response()
-    
-    def get_conversation_history(self):
-        return self.conversation_history
+        elif any(command in text.lower() for command in self.responses):
+            for command in self.responses:
+                if command in text.lower():
+                    return self.responses[command]()
+        
+        print("No specific command detected. Trying to find a quote.")
+        # Default case: generate a quote for any input
+        quote, author = self.quote_finder.find_quote_for_tweet(text)
+        print(f"Quote: {quote}\n Author: {author}")
+        return f"Quote: {quote} \n Author: {author}"
 
 if __name__ == "__main__":
-    data_handler = DataHandler(quotes_vectorized, tweets_vectorized, df, combined_text)
-    ai = ChatBot(name="Dev", data_handler=data_handler)
-    while True:
-        user_input = input("You --> ")
-        response = ai.generate_response(user_input)
-        if isinstance(response, tuple):
-            print(f"AI --> {response[0]}")
-            print(f"AI --> {response[1]}")
-        else:
-            print(f"AI --> {response}")
+    quotes_vectorized, tweets_vectorized, df, quotes_2, combined_text, tweets_df = load_data()
+    data_handler = QuoteFinder.load('Deployment/data/vectorizer.pkl', 'Deployment/data/svm_model.pkl', 'Deployment/data/quotes_df.pkl')
+    ai = ChatBot(name="Bobby", quote_finder=data_handler)
+
+    # Testing the chatbot with various inputs
+    test_input = "Give me a quote about time."
+    response = ai.generate_response(test_input)
+    print(f"AI --> {response}")

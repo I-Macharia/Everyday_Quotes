@@ -6,7 +6,13 @@ import plotly.express as px
 from wordcloud import WordCloud
 import streamlit as st
 import pickle
-from chatbot import ChatBot, DataHandler  # Import DataHandler class from chatbot module
+import joblib
+from PIL import Image, ImageDraw, ImageFont
+from my_functions import (load_results, QuoteFinder,aggregate_statistics,
+    plot_histograms,
+    sentiment_categories,
+    correlation_analysis)
+from chatbot import ChatBot
 
 # Function to load data
 @st.cache_data
@@ -17,30 +23,43 @@ def load_data():
         tweets_vectorized = pickle.load(q)
     with open('data/quotes_2_pickle', 'rb') as d:
         quotes_2 = pickle.load(d)
+    with open('data/tweets_df', 'rb') as t:
+        tweets_df = pickle.load(t)
     df = pd.read_csv('data/quotes_2.csv')
     with open('data/combined_text', 'rb') as ct:
         combined_text = pickle.load(ct)
-    return quotes_vectorized, tweets_vectorized, df, quotes_2, combined_text
+    return quotes_vectorized, tweets_vectorized, df, quotes_2, combined_text, tweets_df
+
+# Load the results from the pickle file
+loaded_results = load_results('Deployment/data/analysis_results.pkl')
+
 
 def main_page():
-    st.title("Chatbot App")
-    quotes_vectorized, tweets_vectorized, df, quotes_2, combined_text = load_data()
+    st.title("Bobby's Quotes Bot")
+      
+    # Display instructions
+    st.header("How to Use the ChatBot")
+    st.write("""
+    1. Type a greeting like "hello".
+    2. Ask for the current time by typing "time".
+    3. Ask for today's date by typing "date".
+    4. Ask for a quote on a specific topic, for example, "quote about time".
+    5. You can also say "thanks" to receive a polite response.
+    6. Explore other predefined responses like "yes", "no", "what can you do", and "capabilities".
+    7. You can go ahead and tell it whatever, and it will return a relatable quote 80% of the time.
+    """)
+    quotes_vectorized, tweets_vectorized, df, quotes_2, combined_text, tweets_df = load_data()
 
-    name = "Dev"
-    data_handler = DataHandler(quotes_vectorized, tweets_vectorized, df, combined_text)
-    ai = ChatBot(name=name, data_handler=data_handler)
-
-    if conversation_history := ai.get_conversation_history():
-        st.subheader("Conversation History")
-        for interaction in conversation_history:
-            st.write(f"You --> {interaction['user']}")
-            st.write(f"AI --> {interaction['bot']}")
-            st.write("---")
+    
+    data_handler = QuoteFinder.load('Deployment/data/vectorizer.pkl', 'Deployment/data/svm_model.pkl', 'Deployment/data/quotes_df.pkl')
+    ai = ChatBot(name="Bobby", quote_finder=data_handler)
 
     user_input = st.text_input("You -->")
     if st.button("Send") and user_input:
         reply = ai.generate_response(user_input)
-        st.write(f"AI --> {reply}")
+        
+        st.write("Bobby -->")
+        st.write(reply)
 
 def about_page():
     st.title("Daily Motivation Quotes")
@@ -55,7 +74,8 @@ In a world filled with daily challenges and responsibilities, staying motivated 
 • Analyze the structure of the collected data, including metadata such as author names, publication dates, and associated tags.
 """)
     
-    df = pd.read_csv('data/quotes_2.csv')
+    with open('Deployment\data\quotes_2.pkl', 'rb') as qt:
+        df = pickle.load(qt)
     
     def generate_word_cloud(data, column, title):
         wordcloud = WordCloud(width=800, height=400, background_color='black').generate(' '.join(data[column]))
@@ -87,6 +107,44 @@ In a world filled with daily challenges and responsibilities, staying motivated 
     author_contribution_bar_chart(df)
     st.title('Tag Distribution Pie Chart')
     st.plotly_chart(fig)
+    
+    # Calculate and display aggregate statistics
+    polarity_scores = df['polarity'].values  # Assuming polarity scores are in the 'polarity' column
+    subjectivity_scores = df['subjectivity'].values  # Assuming subjectivity scores are in the 'subjectivity' column
+
+    stats = aggregate_statistics(polarity_scores, subjectivity_scores)
+    st.write("""
+             Polarity indicates the sentiment orientation of the quote (positive, negative, or neutral), with values closer to 1 indicating more positive sentiment, closer to -1 indicating more negative sentiment, and around 0 indicating neutral sentiment. 
+Subjectivity measures how subjective or opinionated the quote is, with values closer to 1 indicating more subjective content and around 0 indicating more objective or factual content.
+""")
+    
+    # Display histograms
+    plot_histograms(polarity_scores, subjectivity_scores)
+    st.write("""
+              Polarity Statistics:
+    
+    The mean polarity score is slightly positive (0.113), indicating that, on average, the quotes tend to be more positive than negative.
+    The median polarity score is 0.050, suggesting that there is a right-skewed distribution with more quotes leaning towards positivity.
+    The standard deviation of polarity scores is relatively high (0.290), indicating a wide variability in sentiment polarity among the quotes.
+    
+    Subjectivity Statistics:
+    
+    The mean subjectivity score is 0.450, indicating that the quotes, on average, contain a moderate level of subjectivity.
+    The median subjectivity score is 0.500, suggesting an even distribution of subjective and objective quotes.
+    The standard deviation of subjectivity scores is 0.302, indicating variability in the subjective nature of the quotes.
+    
+             """)
+    
+    
+    # Display sentiment categories
+    sentiment_categories(polarity_scores)
+    st.write("This distribution shows that the majority of quotes tend to be neutral or slightly positive in sentiment.")
+    
+    # Display correlation analysis
+    correlation_analysis(polarity_scores)
+    st.write("This suggests that longer quotes tend to have slightly lower polarity scores, indicating that longer quotes may express less extreme sentiment.")
+    
+    
 
 pages = {'About': about_page, 'Main': main_page}
 page = st.sidebar.selectbox('Go to', list(pages.keys()))
