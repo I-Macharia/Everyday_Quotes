@@ -1,9 +1,8 @@
 import requests
 import pandas as pd
-#from bs4 import BeautifulSoup
-#import scrapy 
+ 
 import zipfile
-#from pathlib import path
+
 import pickle
 
 import numpy as np
@@ -57,13 +56,18 @@ Example:
     try:
         # Detect the language of the text
         lang = detect(text)
-
+        
         if lang == 'en':
             return text
+        
         translator = Translator()
-        return translator.translate(text, src=lang, dest='en').text
-    except:
-        return text 
+        translation = translator.translate(text, src=lang, dest='en')
+        
+        return translation.text if translation else text
+    except Exception as e:
+        print(f"An error occurred: {e}")
+        return text
+
     
 
 def preprocess_text(text):

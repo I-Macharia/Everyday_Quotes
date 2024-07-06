@@ -1,4 +1,4 @@
-#!c:\Users\BobbyBob\.conda\envs\Quotesenv\python.exe
+#!e:\Documents\data_science\post_capstone\Everyday_Quotes\Everyday_Quotes\Quotesenv\python.exe
 # -*- coding: utf-8 -*-
 import argparse
 import sys
