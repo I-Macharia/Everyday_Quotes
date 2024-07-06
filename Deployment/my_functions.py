@@ -10,6 +10,7 @@ import plotly.express as px
 import zipfile
 import pickle
 import string
+import gzip 
 
 from sklearn.metrics.pairwise import cosine_similarity, linear_kernel
 from sklearn.cluster import KMeans
@@ -28,6 +29,12 @@ from nltk.corpus import stopwords
 from nltk.tokenize import word_tokenize
 
 import streamlit as st
+
+# Download the model using spacy.cli.download
+spacy.cli.download("en_core_web_sm")
+
+nltk.download("punkt")
+nltk.download("stopwords")
 
 
 def clean_text(text):
@@ -164,25 +171,27 @@ class QuoteFinder:
             print(f"An error occurred: {e}")
             return "An error occurred.", "Unknown"
 
+    # Serialize and compress data
     def save(self, vectorizer_filepath, model_filepath, dataframe_filepath):
-        with open(vectorizer_filepath, 'wb') as file:
+        with gzip.open(vectorizer_filepath, 'wb') as file:
             pickle.dump(self.vectorizer, file, protocol=pickle.HIGHEST_PROTOCOL)
 
-        with open(model_filepath, 'wb') as file:
+        with gzip.open(model_filepath, 'wb') as file:
             pickle.dump(self.svm_model, file, protocol=pickle.HIGHEST_PROTOCOL)
 
-        with open(dataframe_filepath, 'wb') as file:
+        with gzip.open(dataframe_filepath, 'wb') as file:
             pickle.dump(self.quotes_df, file, protocol=pickle.HIGHEST_PROTOCOL)
-
+            
+    # Decompress and deserialize data
     @classmethod
     def load(cls, vectorizer_filepath, model_filepath, dataframe_filepath):
-        with open(vectorizer_filepath, 'rb') as file:
+        with gzip.open(vectorizer_filepath, 'rb') as file:
             vectorizer = pickle.load(file)
 
-        with open(model_filepath, 'rb') as file:
+        with gzip.open(model_filepath, 'rb') as file:
             svm_model = pickle.load(file)
 
-        with open(dataframe_filepath, 'rb') as file:
+        with gzip.open(dataframe_filepath, 'rb') as file:
             quotes_df = pickle.load(file)
 
         instance = cls(quotes_df)

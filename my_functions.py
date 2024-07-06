@@ -4,6 +4,7 @@ import pandas as pd
 import zipfile
 
 import pickle
+import gzip
 
 import numpy as np
 import seaborn as sns
@@ -35,6 +36,12 @@ import nltk
 from nltk.corpus import stopwords
 from nltk.tokenize import word_tokenize
 from textblob import TextBlob
+
+# Download the model using spacy.cli.download
+spacy.cli.download("en_core_web_sm")
+
+nltk.download("punkt")
+nltk.download("stopwords")
 
 
 def translate_to_english(text):
@@ -239,79 +246,70 @@ Methods:
         self.quotes_df = quotes_df
         self.vectorizer = None
         self.svm_model = None
-        
+
         if self.quotes_df is not None:
             self.quotes_df['combined'] = self.quotes_df['quote_2'] + " " + self.quotes_df['author_2']
-        
+
     def train_model(self):
         if self.quotes_df is None:
             raise ValueError("Quotes DataFrame is not set.")
         
-        # Vectorize the combined quotes
         self.vectorizer = TfidfVectorizer()
         X = self.vectorizer.fit_transform(self.quotes_df['combined'])
         
-        # Assign column for labels
-        y = self.quotes_df.index  # Use the index of the dataframe as the labels
+        y = self.quotes_df.index
         
-        # Train the SVM model
         self.svm_model = SVC(kernel='linear')
         self.svm_model.fit(X, y)
-    
+
     def clean_text(self, text):
-        # Implement your text cleaning function here
-        # This is a placeholder implementation
-        return text.lower()
+        text = text.lower()
+        tokens = word_tokenize(text)
+        tokens = [word for word in tokens if word.isalnum() and word not in stopwords.words('english')]
+        return ' '.join(tokens)
 
     def find_quote_for_tweet(self, tweet):
         cleaned_tweet = self.clean_text(tweet)
         vectorized_tweet = self.vectorizer.transform([cleaned_tweet])
-        
+
         try:
-            # Predict the most relevant quote
             index = self.svm_model.predict(vectorized_tweet)[0]
-            
             quote = self.quotes_df.iloc[index]['quote_2']
             author = self.quotes_df.iloc[index]['author_2']
-            
             return quote, author
         except IndexError as e:
             print(f"Error: {e}")
             print(f"Predicted index {index} is out of range.")
-            return None
+            return "No quote found.", "Unknown"
         except Exception as e:
             print(f"An error occurred: {e}")
-            return None
-    
+            return "An error occurred.", "Unknown"
+
+    # Serialize and compress data
     def save(self, vectorizer_filepath, model_filepath, dataframe_filepath):
-        # Save the vectorizer
-        with open(vectorizer_filepath, 'wb') as file:
+        with gzip.open(vectorizer_filepath, 'wb') as file:
             pickle.dump(self.vectorizer, file, protocol=pickle.HIGHEST_PROTOCOL)
 
-        # Save the SVM model
-        with open(model_filepath, 'wb') as file:
+        with gzip.open(model_filepath, 'wb') as file:
             pickle.dump(self.svm_model, file, protocol=pickle.HIGHEST_PROTOCOL)
 
-        # Save the DataFrame
-        with open(dataframe_filepath, 'wb') as file:
+        with gzip.open(dataframe_filepath, 'wb') as file:
             pickle.dump(self.quotes_df, file, protocol=pickle.HIGHEST_PROTOCOL)
-    
+            
+    # Decompress and deserialize data
     @classmethod
     def load(cls, vectorizer_filepath, model_filepath, dataframe_filepath):
-        # Load the vectorizer
-        with open(vectorizer_filepath, 'rb') as file:
+        with gzip.open(vectorizer_filepath, 'rb') as file:
             vectorizer = pickle.load(file)
 
-        # Load the SVM model
-        with open(model_filepath, 'rb') as file:
+        with gzip.open(model_filepath, 'rb') as file:
             svm_model = pickle.load(file)
 
-        # Load the DataFrame
-        with open(dataframe_filepath, 'rb') as file:
+        with gzip.open(dataframe_filepath, 'rb') as file:
             quotes_df = pickle.load(file)
-        
+
         instance = cls(quotes_df)
         instance.vectorizer = vectorizer
         instance.svm_model = svm_model
-        
+
         return instance

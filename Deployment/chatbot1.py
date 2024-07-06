@@ -6,6 +6,7 @@ import plotly.express as px
 from wordcloud import WordCloud
 import streamlit as st
 import pickle
+import gzip
 import joblib
 from PIL import Image, ImageDraw, ImageFont
 from my_functions import (load_results, QuoteFinder,aggregate_statistics,
@@ -51,7 +52,7 @@ def main_page():
     quotes_vectorized, tweets_vectorized, df, quotes_2, combined_text, tweets_df = load_data()
 
     
-    data_handler = QuoteFinder.load('Deployment/data/vectorizer.pkl', 'Deployment/data/svm_model.pkl', 'Deployment/data/quotes_df.pkl')
+    data_handler = QuoteFinder.load('Deployment/data/vectorizer.pkl.gz', 'Deployment/data/svm_model.pkl.gz', 'Deployment/data/quotes_df.pkl.gz')
     ai = ChatBot(name="Bobby", quote_finder=data_handler)
 
     user_input = st.text_input("You -->")

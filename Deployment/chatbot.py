@@ -3,6 +3,7 @@ import pandas as pd
 import datetime
 import pickle
 import spacy
+import gzip
 import joblib
 from sklearn.utils import resample
 from sklearn.neighbors import KNeighborsRegressor
@@ -30,7 +31,7 @@ def load_data():
 quotes_vectorized, tweets_vectorized, df, quotes_2, combined_text, tweets_df = load_data()
 
 # Load the QuoteFinder class with the saved components
-quote_finder = QuoteFinder.load('Deployment/data/vectorizer.pkl', 'Deployment/data/svm_model.pkl', 'Deployment/data/quotes_df.pkl')
+quote_finder = QuoteFinder.load('Deployment/data/vectorizer.pkl.gz', 'Deployment/data/svm_model.pkl.gz', 'Deployment/data/quotes_df.pkl.gz')
 
 
 class ChatBot:
@@ -119,7 +120,7 @@ class ChatBot:
 
 if __name__ == "__main__":
     quotes_vectorized, tweets_vectorized, df, quotes_2, combined_text, tweets_df = load_data()
-    data_handler = QuoteFinder.load('Deployment/data/vectorizer.pkl', 'Deployment/data/svm_model.pkl', 'Deployment/data/quotes_df.pkl')
+    data_handler = QuoteFinder.load('Deployment/data/vectorizer.pkl.gz', 'Deployment/data/svm_model.pkl.gz', 'Deployment/data/quotes_df.pkl.gz')
     ai = ChatBot(name="Bobby", quote_finder=data_handler)
 
     # Testing the chatbot with various inputs
