@@ -6,7 +6,6 @@ import plotly.express as px
 from wordcloud import WordCloud
 import streamlit as st
 import pickle
-import gzip
 import joblib
 from PIL import Image, ImageDraw, ImageFont
 from my_functions import (load_results, QuoteFinder,aggregate_statistics,
@@ -14,7 +13,13 @@ from my_functions import (load_results, QuoteFinder,aggregate_statistics,
     sentiment_categories,
     correlation_analysis)
 from chatbot import ChatBot
+import spacy
+import spacy.cli
 
+# Download the model using spacy.cli.download
+# spacy.cli.download("en_core_web_sm")
+
+nlp = spacy.load("en_core_web_sm")
 # Function to load data
 @st.cache_data
 def load_data():
@@ -76,7 +81,7 @@ In a world filled with daily challenges and responsibilities, staying motivated 
 • Analyze the structure of the collected data, including metadata such as author names, publication dates, and associated tags.
 """)
     
-    with open('Deployment\data\quotes_2.pkl', 'rb') as qt:
+    with open('Deployment/data/quotes_2.pkl', 'rb') as qt:
         df = pickle.load(qt)
     
     def generate_word_cloud(data, column, title):
@@ -176,7 +181,7 @@ Subjectivity measures how subjective or opinionated the quote is, with values cl
         1. Commit to iterating on the platform based on user feedback, emerging trends, and technological advancements.
         2. Stay agile and adaptive to ensure the platform remains relevant, impactful, and inspiring for users.
     """)
-    
+        
 pages = {'About': about_page, 'Main': main_page}
 page = st.sidebar.selectbox('Go to', list(pages.keys()))
 pages[page]()

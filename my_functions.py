@@ -1,11 +1,5 @@
 import requests
 import pandas as pd
- 
-import zipfile
-
-import pickle
-import gzip
-
 import numpy as np
 import seaborn as sns
 import matplotlib.pyplot as plt
@@ -13,20 +7,19 @@ from wordcloud import WordCloud
 from nltk import FreqDist
 import plotly.express as px
 
-from langdetect import detect
-from googletrans import Translator
+import zipfile
+import pickle
+import string
+import gzip
+import spacy
 
 from sklearn.metrics.pairwise import cosine_similarity, linear_kernel
-
-
 from sklearn.cluster import KMeans
 from sklearn.neighbors import NearestNeighbors
 from sklearn.metrics import mean_squared_error, accuracy_score
 from sklearn.model_selection import cross_val_score, GridSearchCV, train_test_split
 from sklearn.neighbors import  KNeighborsRegressor
 from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier, VotingClassifier
-from tensorflow.keras.preprocessing.text import Tokenizer
-from tensorflow.keras.preprocessing.sequence import pad_sequences
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 from sklearn.utils import resample
@@ -35,7 +28,8 @@ from sklearn.svm import SVC
 import nltk
 from nltk.corpus import stopwords
 from nltk.tokenize import word_tokenize
-from textblob import TextBlob
+
+import streamlit as st
 
 # Download the model using spacy.cli.download
 spacy.cli.download("en_core_web_sm")
@@ -141,8 +135,12 @@ def preprocesss_text(text):
 # Simple text cleaning process
 def clean_text(text):
     if isinstance(text, str):
+        # Convert to lowercase
         text = text.lower()
+        # Remove specific punctuation marks
         text = ''.join([c for c in text if c not in ('!', '.', ':', '?', ',', '\"')])
+        # Remove any remaining punctuation
+        text = text.translate(str.maketrans('', '', string.punctuation))
     return text
 
 
@@ -163,13 +161,13 @@ def aggregate_statistics(polarity_scores, subjectivity_scores):
         "subjectivity_std": subjectivity_std,
     }
 
-    print("Aggregate Statistics:")
-    print(f"Polarity Mean: {polarity_mean:.3f}")
-    print(f"Polarity Median: {polarity_median:.3f}")
-    print(f"Polarity Standard Deviation: {polarity_std:.3f}")
-    print(f"Subjectivity Mean: {subjectivity_mean:.3f}")
-    print(f"Subjectivity Median: {subjectivity_median:.3f}")
-    print(f"Subjectivity Standard Deviation: {subjectivity_std:.3f}")
+    st.write("### Aggregate Statistics")
+    st.write(f"**Polarity Mean:** {polarity_mean:.3f}")
+    st.write(f"**Polarity Median:** {polarity_median:.3f}")
+    st.write(f"**Polarity Standard Deviation:** {polarity_std:.3f}")
+    st.write(f"**Subjectivity Mean:** {subjectivity_mean:.3f}")
+    st.write(f"**Subjectivity Median:** {subjectivity_median:.3f}")
+    st.write(f"**Subjectivity Standard Deviation:** {subjectivity_std:.3f}")
 
     return stats
 
@@ -189,7 +187,7 @@ def plot_histograms(polarity_scores, subjectivity_scores):
     plt.ylabel('Frequency')
 
     plt.tight_layout()
-    plt.show()
+    st.pyplot(plt)
 
 def sentiment_categories(polarity_scores, positive_threshold=0.2, negative_threshold=-0.2):
     positive_quotes = sum(p > positive_threshold for p in polarity_scores)
@@ -204,10 +202,10 @@ def sentiment_categories(polarity_scores, positive_threshold=0.2, negative_thres
         "negative_quotes": negative_quotes,
     }
 
-    print("\nSentiment Categories:")
-    print(f"Positive Quotes: {positive_quotes}")
-    print(f"Neutral Quotes: {neutral_quotes}")
-    print(f"Negative Quotes: {negative_quotes}")
+    st.write("### Sentiment Categories")
+    st.write(f"**Positive Quotes:** {positive_quotes}")
+    st.write(f"**Neutral Quotes:** {neutral_quotes}")
+    st.write(f"**Negative Quotes:** {negative_quotes}")
 
     return categories
 
@@ -215,33 +213,20 @@ def correlation_analysis(polarity_scores):
     quote_lengths = np.random.randint(10, 200, size=len(polarity_scores))
     correlation = np.corrcoef(polarity_scores, quote_lengths)[0, 1]
 
-    print("\nCorrelation Analysis:")
-    print(f"Correlation between Polarity Scores and Quote Lengths: {correlation:.3f}")
+    st.write("### Correlation Analysis")
+    st.write(f"**Correlation between Polarity Scores and Quote Lengths:** {correlation:.3f}")
 
     return correlation
 
 def save_results(filename, results):
-    with open(filename, 'wb') as f:
-        pickle.dump(results, f)
+    with gzip.open(filename, 'wb') as f:
+        pickle.dump(results, f, protocol=pickle.HIGHEST_PROTOCOL)
 
 def load_results(filename):
-    with open(filename, 'rb') as f:
+    with gzip.open(filename, 'rb') as f:
         return pickle.load(f)
 
-
 class QuoteFinder:
-    """
-    Args:
-    quotes_df: A DataFrame containing quotes and authors.
-
-Methods:
-    __init__: Initializes the QuoteFinder with a DataFrame of quotes.
-    train_model: Trains an SVM model on the combined quotes.
-    clean_text: Cleans the input text for processing.
-    find_quote_for_tweet: Finds the most relevant quote for a given tweet.
-    save: Saves the vectorizer, SVM model, and DataFrame to specified files.
-    load: Loads the vectorizer, SVM model, and DataFrame from specified files.
-"""
     def __init__(self, quotes_df=None):
         self.quotes_df = quotes_df
         self.vectorizer = None

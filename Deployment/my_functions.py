@@ -10,7 +10,8 @@ import plotly.express as px
 import zipfile
 import pickle
 import string
-import gzip 
+import gzip
+import spacy
 
 from sklearn.metrics.pairwise import cosine_similarity, linear_kernel
 from sklearn.cluster import KMeans
@@ -37,11 +38,109 @@ nltk.download("punkt")
 nltk.download("stopwords")
 
 
-def clean_text(text):
-    # Remove punctuation
-    text = text.translate(str.maketrans('', '', string.punctuation))
-    # Convert to lowercase
+def translate_to_english(text):
+    """
+Translates the given text to English if it is not already in English.
+
+Args:
+    text (str): The text to be translated.
+
+Returns:
+    str: The translated text in English, or the original text if it is already in English.
+
+Example:
+    ```python
+    translated_text = translate_to_english("Bonjour")
+    print(translated_text)  # Output: "Hello"
+    ```
+"""
+    try:
+        # Detect the language of the text
+        lang = detect(text)
+        
+        if lang == 'en':
+            return text
+        
+        translator = Translator()
+        translation = translator.translate(text, src=lang, dest='en')
+        
+        return translation.text if translation else text
+    except Exception as e:
+        print(f"An error occurred: {e}")
+        return text
+
+    
+
+def preprocess_text(text):
+    """
+Preprocesses the given text by converting it to lowercase, tokenizing it, removing stopwords, and joining the tokens back into text.
+
+Args:
+    text (str): The text to be preprocessed.
+
+Returns:
+    str: The preprocessed text.
+
+Example:
+    ```python
+    preprocessed_text = preprocess_text("This is a sample text.")
+    print(preprocessed_text)  # Output: "sample text"
+    ```
+"""
+
+    # Lowercase
     text = text.lower()
+    # Tokenization
+    tokens = word_tokenize(text)
+    # Remove stopwords
+    tokens = [word for word in tokens if word not in stopwords.words('english')]
+
+     # Tokenize
+    words = nltk.word_tokenize(text.lower())
+    
+    # Remove stopwords and punctuation
+    words = [word for word in words if word.isalpha() and word not in stop_words]
+    # Lemmatize
+    words = [lemmatizer.lemmatize(word) for word in words]
+    # Join tokens back into text 
+    
+    return ' '.join(tokens), words
+
+
+def compress_tags(tags_list):
+    return list(set(tags_list))[:5]
+
+def preprocesss_text(text):
+    """
+    Preprocesses the given text by converting it to lowercase, tokenizing it, removing stopwords, and joining the tokens back into text.
+    
+    Parameters:
+    - text (str): The input text.
+    
+    Returns:
+    - str: The preprocessed text.
+    """
+    if isinstance(text, float):
+        # Return an empty string for float values
+        return ''
+    # Lowercase
+    text = text.lower()
+    # Tokenization
+    tokens = word_tokenize(text)
+    # Remove stopwords
+    stop_words = set(stopwords.words('english'))
+    tokens = [word for word in tokens if word.isalnum() and word not in stop_words]
+    return ' '.join(tokens)
+
+# Simple text cleaning process
+def clean_text(text):
+    if isinstance(text, str):
+        # Convert to lowercase
+        text = text.lower()
+        # Remove specific punctuation marks
+        text = ''.join([c for c in text if c not in ('!', '.', ':', '?', ',', '\"')])
+        # Remove any remaining punctuation
+        text = text.translate(str.maketrans('', '', string.punctuation))
     return text
 
 
