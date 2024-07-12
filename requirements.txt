@@ -38,7 +38,7 @@ hstspreload==2024.7.1
 httpcore==0.9.1
 httpx==0.23.0
 hyperframe==5.2.0
-idna==2.10
+idna==3.7
 ipykernel==6.29.5
 ipython==8.26.0
 jedi==0.19.1
