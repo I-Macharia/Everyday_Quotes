@@ -12,6 +12,8 @@ import pickle
 import string
 import gzip
 import spacy
+from langdetect import detect
+from googletrans import Translator
 
 from sklearn.metrics.pairwise import cosine_similarity, linear_kernel
 from sklearn.cluster import KMeans
@@ -31,11 +33,12 @@ from nltk.tokenize import word_tokenize
 
 import streamlit as st
 
-# Download the model using spacy.cli.download
-spacy.cli.download("en_core_web_sm")
+#Commented this out after installation
+# # Download the model using spacy.cli.download
+# spacy.cli.download("en_core_web_sm")
 
-nltk.download("punkt")
-nltk.download("stopwords")
+# nltk.download("punkt")
+# nltk.download("stopwords")
 
 
 def translate_to_english(text):
@@ -218,12 +221,14 @@ def correlation_analysis(polarity_scores):
 
     return correlation
 
+# Function to save results to a pickle file
 def save_results(filename, results):
-    with gzip.open(filename, 'wb') as f:
+    with open(filename, 'wb') as f:
         pickle.dump(results, f, protocol=pickle.HIGHEST_PROTOCOL)
 
+# Function to load results from a pickle file
 def load_results(filename):
-    with gzip.open(filename, 'rb') as f:
+    with open(filename, 'rb') as f:
         return pickle.load(f)
 
 class QuoteFinder:

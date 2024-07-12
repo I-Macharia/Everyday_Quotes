@@ -31,11 +31,12 @@ from nltk.tokenize import word_tokenize
 
 import streamlit as st
 
-# Download the model using spacy.cli.download
-spacy.cli.download("en_core_web_sm")
+# Commented out after installation
+# # Download the model using spacy.cli.download
+# spacy.cli.download("en_core_web_sm")
 
-nltk.download("punkt")
-nltk.download("stopwords")
+# nltk.download("punkt")
+# nltk.download("stopwords")
 
 
 def translate_to_english(text):
@@ -218,10 +219,12 @@ def correlation_analysis(polarity_scores):
 
     return correlation
 
+# Function to save results to a pickle file
 def save_results(filename, results):
     with open(filename, 'wb') as f:
         pickle.dump(results, f, protocol=pickle.HIGHEST_PROTOCOL)
 
+# Function to load results from a pickle file
 def load_results(filename):
     with open(filename, 'rb') as f:
         return pickle.load(f)

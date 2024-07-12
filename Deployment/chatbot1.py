@@ -36,8 +36,7 @@ def load_data():
         combined_text = pickle.load(ct)
     return quotes_vectorized, tweets_vectorized, df, quotes_2, combined_text, tweets_df
 
-# Load the results from the pickle file
-loaded_results = load_results('Deployment/data/analysis_results.pkl')
+
 
 
 def main_page():
