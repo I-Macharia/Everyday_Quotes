@@ -17,17 +17,18 @@ The project consists of the following components:
 
 ## Installation
 To run the project locally, follow these steps:
-1. Clone the repository: `git clone Everyday_quotes`
+1. Clone the repository: `git clone https://github.com/I-Macharia/Everyday_Quotes.git`
 2. Install the required dependencies: `pip install -r requirements.txt`
-3. Run the project: `python main.py`
+3. Run the project: `streamlit run Deployment/chatbot1.py`
 
 ## Usage
-- The `Quotes_scraper.ipynb` script serves as the entry point for the project.
+- The `Quotes_scraper.ipynb` notebook serves as the entry point for the project.
 - Modify the script as needed to customize data collection, data preparation, EDA, and modeling.
-- Refer to the project documentation for detailed instructions on each component.
+- Next is the `Quotes.ipynb` notebook is next and finally the  `Quotes_Modelling.ipynb` that has the final quote finder script. 
 
 ## Contributors
 - Ian Macharia(I-Macharia)
+- Ian Macharia(IMacharia)
 
 
 ## License

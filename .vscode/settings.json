@@ -1,4 +1,23 @@
 {
     "python.analysis.typeCheckingMode": "basic",
-    "python.analysis.autoImportCompletions": true
+    "python.analysis.autoImportCompletions": true,
+    "cSpell.words": [
+        "corrcoef",
+        "dataframe",
+        "edgecolor",
+        "figsize",
+        "histplot",
+        "iloc",
+        "Lemmatize",
+        "lemmatizer",
+        "Preprocesses",
+        "preprocesss",
+        "skyblue",
+        "stopwords",
+        "textblob",
+        "Tfidf",
+        "Vectorize",
+        "xlabel",
+        "ylabel"
+    ]
 }

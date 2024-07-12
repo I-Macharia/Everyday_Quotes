@@ -1,13 +1,5 @@
 import requests
 import pandas as pd
-#from bs4 import BeautifulSoup
-#import scrapy 
-import zipfile
-#from pathlib import path
-import pickle
-
-import string
-
 import numpy as np
 import seaborn as sns
 import matplotlib.pyplot as plt
@@ -15,20 +7,19 @@ from wordcloud import WordCloud
 from nltk import FreqDist
 import plotly.express as px
 
-# from langdetect import detect
-# from googletrans import Translator
+import zipfile
+import pickle
+import string
+import gzip
+import spacy
 
 from sklearn.metrics.pairwise import cosine_similarity, linear_kernel
-
-
 from sklearn.cluster import KMeans
 from sklearn.neighbors import NearestNeighbors
 from sklearn.metrics import mean_squared_error, accuracy_score
 from sklearn.model_selection import cross_val_score, GridSearchCV, train_test_split
 from sklearn.neighbors import  KNeighborsRegressor
 from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier, VotingClassifier
-# from tensorflow.keras.preprocessing.text import Tokenizer
-# from tensorflow.keras.preprocessing.sequence import pad_sequences
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 from sklearn.utils import resample
@@ -37,9 +28,16 @@ from sklearn.svm import SVC
 import nltk
 from nltk.corpus import stopwords
 from nltk.tokenize import word_tokenize
-# from textblob import TextBlob
 
 import streamlit as st
+
+# Commented out after installation
+# # Download the model using spacy.cli.download
+# spacy.cli.download("en_core_web_sm")
+
+# nltk.download("punkt")
+# nltk.download("stopwords")
+
 
 def translate_to_english(text):
     """
@@ -60,13 +58,18 @@ Example:
     try:
         # Detect the language of the text
         lang = detect(text)
-
+        
         if lang == 'en':
             return text
+        
         translator = Translator()
-        return translator.translate(text, src=lang, dest='en').text
-    except Exception:
-        return text 
+        translation = translator.translate(text, src=lang, dest='en')
+        
+        return translation.text if translation else text
+    except Exception as e:
+        print(f"An error occurred: {e}")
+        return text
+
     
 
 def preprocess_text(text):
@@ -131,12 +134,14 @@ def preprocesss_text(text):
     return ' '.join(tokens)
 
 # Simple text cleaning process
-
 def clean_text(text):
-    # Remove punctuation
-    text = text.translate(str.maketrans('', '', string.punctuation))
-    # Convert to lowercase
-    text = text.lower()
+    if isinstance(text, str):
+        # Convert to lowercase
+        text = text.lower()
+        # Remove specific punctuation marks
+        text = ''.join([c for c in text if c not in ('!', '.', ':', '?', ',', '\"')])
+        # Remove any remaining punctuation
+        text = text.translate(str.maketrans('', '', string.punctuation))
     return text
 
 
@@ -214,10 +219,12 @@ def correlation_analysis(polarity_scores):
 
     return correlation
 
+# Function to save results to a pickle file
 def save_results(filename, results):
     with open(filename, 'wb') as f:
         pickle.dump(results, f, protocol=pickle.HIGHEST_PROTOCOL)
 
+# Function to load results from a pickle file
 def load_results(filename):
     with open(filename, 'rb') as f:
         return pickle.load(f)
@@ -266,25 +273,27 @@ class QuoteFinder:
             print(f"An error occurred: {e}")
             return "An error occurred.", "Unknown"
 
+    # Serialize and compress data
     def save(self, vectorizer_filepath, model_filepath, dataframe_filepath):
-        with open(vectorizer_filepath, 'wb') as file:
+        with gzip.open(vectorizer_filepath, 'wb') as file:
             pickle.dump(self.vectorizer, file, protocol=pickle.HIGHEST_PROTOCOL)
 
-        with open(model_filepath, 'wb') as file:
+        with gzip.open(model_filepath, 'wb') as file:
             pickle.dump(self.svm_model, file, protocol=pickle.HIGHEST_PROTOCOL)
 
-        with open(dataframe_filepath, 'wb') as file:
+        with gzip.open(dataframe_filepath, 'wb') as file:
             pickle.dump(self.quotes_df, file, protocol=pickle.HIGHEST_PROTOCOL)
-
+            
+    # Decompress and deserialize data
     @classmethod
     def load(cls, vectorizer_filepath, model_filepath, dataframe_filepath):
-        with open(vectorizer_filepath, 'rb') as file:
+        with gzip.open(vectorizer_filepath, 'rb') as file:
             vectorizer = pickle.load(file)
 
-        with open(model_filepath, 'rb') as file:
+        with gzip.open(model_filepath, 'rb') as file:
             svm_model = pickle.load(file)
 
-        with open(dataframe_filepath, 'rb') as file:
+        with gzip.open(dataframe_filepath, 'rb') as file:
             quotes_df = pickle.load(file)
 
         instance = cls(quotes_df)

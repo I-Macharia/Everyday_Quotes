@@ -13,7 +13,13 @@ from my_functions import (load_results, QuoteFinder,aggregate_statistics,
     sentiment_categories,
     correlation_analysis)
 from chatbot import ChatBot
+import spacy
+import spacy.cli
 
+# Download the model using spacy.cli.download
+# spacy.cli.download("en_core_web_sm")
+
+nlp = spacy.load("en_core_web_sm")
 # Function to load data
 @st.cache_data
 def load_data():
@@ -30,8 +36,7 @@ def load_data():
         combined_text = pickle.load(ct)
     return quotes_vectorized, tweets_vectorized, df, quotes_2, combined_text, tweets_df
 
-# Load the results from the pickle file
-loaded_results = load_results('Deployment/data/analysis_results.pkl')
+
 
 
 def main_page():
@@ -51,7 +56,7 @@ def main_page():
     quotes_vectorized, tweets_vectorized, df, quotes_2, combined_text, tweets_df = load_data()
 
     
-    data_handler = QuoteFinder.load('Deployment/data/vectorizer.pkl', 'Deployment/data/svm_model.pkl', 'Deployment/data/quotes_df.pkl')
+    data_handler = QuoteFinder.load('Deployment/data/vectorizer.pkl.gz', 'Deployment/data/svm_model.pkl.gz', 'Deployment/data/quotes_df.pkl.gz')
     ai = ChatBot(name="Bobby", quote_finder=data_handler)
 
     user_input = st.text_input("You -->")
@@ -60,6 +65,7 @@ def main_page():
         
         st.write("Bobby -->")
         st.write(reply)
+
 
 def about_page():
     st.title("Daily Motivation Quotes")
@@ -74,7 +80,7 @@ In a world filled with daily challenges and responsibilities, staying motivated 
 • Analyze the structure of the collected data, including metadata such as author names, publication dates, and associated tags.
 """)
     
-    with open('Deployment\data\quotes_2.pkl', 'rb') as qt:
+    with open('Deployment/data/quotes_2.pkl', 'rb') as qt:
         df = pickle.load(qt)
     
     def generate_word_cloud(data, column, title):
@@ -135,7 +141,6 @@ Subjectivity measures how subjective or opinionated the quote is, with values cl
     
              """)
     
-    
     # Display sentiment categories
     sentiment_categories(polarity_scores)
     st.write("This distribution shows that the majority of quotes tend to be neutral or slightly positive in sentiment.")
@@ -144,8 +149,38 @@ Subjectivity measures how subjective or opinionated the quote is, with values cl
     correlation_analysis(polarity_scores)
     st.write("This suggests that longer quotes tend to have slightly lower polarity scores, indicating that longer quotes may express less extreme sentiment.")
     
-    
+    st.header("Conclusion")
+    st.write("""
+    - The Project has been a success, having achieved our objectives and finding the following results:
+        1. Curate Inspirational Quotes: we managed to scrape 3000 quotes from the website from several different industry experts and book authors.
+        2. Build a Web App: we have built a web app that allows users to search for quotes and trained a model to recommend quotes based on user input.
+        3. Tag-based Grouping: we assigned each quote a polarity score and, in effect, created tags for positive, neutral, and negative.
+    - The project also raised several action areas. Specifically, when doing the modeling, we realized we needed more quotes to be able to reach the desired accuracy of 1 for the recommendations to be accurate. This also showed that to try better feature engineering, we would need to use either online code editors with greater compute power or alternatively upgrade our physical PC.
+    - Optimization:
+        1. Continued refining algorithms to enhance the relevance and diversity of quotes.
+        2. Optimized the tagging system for improved categorization accuracy and user experience.
+    """)
 
+    st.header("Recommendations")
+    st.write("""
+    - These are some of the recommendations for moving forward with the next steps:
+        1. Find a new source of quotes to increase the total number to at least 10,000 quotes.
+        2. Create user login functionality and storage of favorite quotes to personalize the app.
+        3. Update the Bot to allow sharing of quotes to other platforms.
+    - Feedback Integration:
+        1. Actively solicit user feedback through surveys, polls, and direct interactions.
+        2. Integrate feedback into the development process to prioritize features and enhance the overall user experience.
+    - Scalability Planning:
+        1. Proactively plan for scalability by designing systems to accommodate larger volumes of users and data.
+        2. Optimize database performance and leverage cloud infrastructure to handle increased traffic and demand.
+    - Community Building:
+        1. Foster a vibrant and engaged community through social media engagement and collaborative initiatives.
+        2. Empower users to share experiences and insights, cultivating a supportive and inspiring community.
+    - Continuous Improvement:
+        1. Commit to iterating on the platform based on user feedback, emerging trends, and technological advancements.
+        2. Stay agile and adaptive to ensure the platform remains relevant, impactful, and inspiring for users.
+    """)
+        
 pages = {'About': about_page, 'Main': main_page}
 page = st.sidebar.selectbox('Go to', list(pages.keys()))
 pages[page]()
