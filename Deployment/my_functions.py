@@ -230,6 +230,19 @@ def load_results(filename):
         return pickle.load(f)
 
 class QuoteFinder:
+    """A class for finding quotes in text data and training a model for quote prediction.
+
+Methods:
+- train_model: Trains a Support Vector Machine model on the quotes data.
+- clean_text: Cleans and preprocesses text data.
+- find_quote_for_tweet: Predicts a quote and author for a given tweet.
+- save: Serialize and compress the model, vectorizer, and data.
+- load: Decompress and deserialize the model, vectorizer, and data.
+
+Raises:
+    ValueError: If quotes DataFrame is not set.
+"""
+
     def __init__(self, quotes_df=None):
         self.quotes_df = quotes_df
         self.vectorizer = None
