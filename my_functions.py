@@ -249,7 +249,7 @@ class QuoteFinder:
         
         y = self.quotes_df.index
         
-        self.svm_model = SVC(kernel='linear')
+        self.svm_model = SVC(C=10, gamma=1, kernel='rbf')
         self.svm_model.fit(X, y)
 
     def clean_text(self, text):
